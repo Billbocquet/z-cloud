@@ -1,0 +1,1 @@
+z-agent needs libargtable2.so shared object, so please copy it to same folder as z-agent

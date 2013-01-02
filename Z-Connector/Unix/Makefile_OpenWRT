@@ -1,0 +1,91 @@
+##############################################
+# OpenWrt Makefile for z-connector
+##############################################
+
+include $(TOPDIR)/rules.mk
+
+# Name and release number of this package
+PKG_NAME:=z-connector
+PKG_VERSION:=1.03
+PKG_RELEASE:=1
+
+# This specifies the directory where we're going to build the program.
+# The root build directory, $(BUILD_DIR), is by default the build_mipsel
+# directory in your OpenWrt SDK directory
+PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
+
+PKG_INSTALL:=1
+
+include $(INCLUDE_DIR)/package.mk
+
+# Specify package information for this program.
+# The variables defined here should be self explanatory.
+define Package/z-connector
+	SECTION:=utils
+	CATEGORY:=Utilities
+	TITLE:=Z-Connector for Z-Cloud service by Z-Wave.Me
+	URL:=http://www.z-wave.me
+endef
+
+define Package/argtable/description
+	Z-Connector provides Z-Agent utility that connects your Z-Wave USB stick to Z-Cloud server
+	allowing you to configure Z-Wave devices and build your home automation.
+	The Z-Cloud and Z-Connector are provided by Z-Wave.Me company.
+	Consult www.z-wave.me for more information.
+endef
+
+# Specify what needs to be done to prepare for building the package.
+# In our case, we need to copy the source files to the build directory.
+# This is NOT the default.  The default uses the PKG_SOURCE_URL and the
+# PKG_SOURCE which is not defined here to download the source from the web.
+# In order to just build a simple program that we have just written, it is
+# much easier to do it this way.
+define Build/Prepare
+	mkdir -p $(PKG_BUILD_DIR)
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
+endef
+
+#########################################################################################
+# The Build/Compile directive needs to be specified in order to customize compilation
+# and linking of our program.  We need to link to uClibc++ and to specify that we
+# do NOT want to link to the standard template library.
+#
+# To do this we define the LIBS variable.  To prevent linking to the standard libraries we
+# add "-nodefaultlibs" to the $(LIBS) variable and then specify "-lgcc -lc" to ensure that
+# there are no unresolved references to internal GCC library subroutines. Finally
+# "-luClibc++" to link to the  uClibc++ library.  Also, we need to specify "-nostdinc++"
+# in the compiler flags to tell the compiler that c++ standard template library functions
+# and data structures will be linked to in specified external libraries and not the
+# standard libraries.
+#########################################################################################
+#define Build/Compile
+#	$(MAKE) -C $(PKG_BUILD_DIR) \
+#		LIBS="-nodefaultlibs -lgcc -lc -luClibc++ -largtable2 -lssl -lcrypto" \
+#		LDFLAGS="$(EXTRA_LDFLAGS)" \
+#		INCLUDES="$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)" \
+#		CXXFLAGS="$(TARGET_CXXFLAGS) $(EXTRA_CPPFLAGS) -nostdinc++" \
+#		$(TARGET_CONFIGURE_OPTS) \
+#		CROSS="$(TARGET_CROSS)" \
+#		ARCH="$(ARCH)" \
+#		$(1);
+#endef
+
+# Specify where and how to install the program. Since we only have one file,
+# the executable, install it by copying it to the /bin directory on
+# the router. The $(1) variable represents the root directory on the router running
+# OpenWrt. The $(INSTALL_DIR) variable contains a command to prepare the install
+# directory if it does not already exist.  Likewise $(INSTALL_BIN) contains the
+# command to copy the binary file from its current location (in our case the build
+# directory) to the install directory.
+define Package/z-connector/install
+	$(INSTALL_DIR) $(1)/bin
+	$(INSTALL_DIR) $(1)/etc
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/z-agent $(1)/bin/
+	##$(INSTALL_BIN) $(PKG_BUILD_DIR)/z-connector $(1)/etc
+endef
+
+# This line executes the necessary commands to compile our program.
+# The above define directives specify all the information needed, but this
+# line calls BuildPackage which in turn actually uses this information to
+# build a package.
+$(eval $(call BuildPackage,z-connector))
