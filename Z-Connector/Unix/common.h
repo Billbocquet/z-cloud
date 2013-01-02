@@ -36,7 +36,7 @@ typedef int SOCKET;
 #define SOCKET_ERROR -1
 #define closesocket(x) close(x)
 
-#define _sleep(x) usleep(x * 1000)
+#define _sleep(x) sleep(x)
 
 #ifndef O_BINARY
 #define O_BINARY 0
